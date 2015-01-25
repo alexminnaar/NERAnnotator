@@ -1,36 +1,50 @@
 $(document).ready(function() {
-	var orange = false;
-	setInterval(function() {
-		orange = !orange;
-		$('h1').css('border-color', orange ? 'transparent' : '#fa4500');
-	}, 500);
-	$('#textarea').bind('updateInfo keyup mousedown mousemove mouseup', function(event) {
-		if (document.activeElement !== $(this)[0]) {
-			return;
-		}
-		var range = $(this).textrange();
-		$('#info .property').each(function() {
-			if (typeof range[$(this).attr('id')] !== 'undefined') {
-				if ($(this).attr('id') === 'text') {
-					range[$(this).attr('id')] = range[$(this).attr('id')].replace(/\n/g, "\\n").replace(/\r/g, "\\r");
-				}
-				$(this).children('.value').html(range[$(this).attr('id')]);
-			}
-		});
+
+	//creates span element around selected text
+	function selectHTML() {
+	    try {
+	        if (window.ActiveXObject) {
+	            var c = document.selection.createRange();
+	            return c.htmlText;
+	        }
+	        var nNd = document.createElement("span");
+	        var w = getSelection().getRangeAt(0);
+	        w.surroundContents(nNd);
+	        return nNd;
+	        
+	    } catch (e) {
+	        if (window.ActiveXObject) {
+	            return document.selection.createRange();
+	        } else {
+	            return getSelection();
+	        }
+	    }
+	}
+	
+	
+	
+
+	
+	//when the annotate button is clicked, open the annotation dialogue box where
+	//the user can label the entity. Set the entity label equal to the id for the
+	//highlighted span.
+	$('#annotate').click(function(){
+		 var mytext = selectHTML();   //selected text DOM
+		 document.getElementById("mention").innerHTML=mytext.innerHTML;  //set mention tag to selected text
+		 $( "#dialog" ).dialog( "open" );  //open dialog to choose entity type
+	     mytext.id="EntityA";  //set id of the span of the selected text to be entity type selected in dialoge 
 	});
-	$('#console-log').click(function() {
-		var obj = {};
-		$('#info .property').each(function() {
-			var value = $(this).children('.value').html();
-			obj[$(this).attr('id')] = isNaN(value) || value == '' ? value : parseInt(value);
-		});
-		console.log(obj);
-		return false;
-	});
-	$('#selection-set').click(function() {
-		$('#textarea').textrange('set', $('#char-start').val(), $('#char-end').val()).trigger('updateInfo').focus();
-	});
-	$('#selection-replace').click(function() {
-		$('#textarea').textrange('replace', $('#replace-text').val()).trigger('updateInfo').focus();
-	});
+	
+	//dialog box in which the entity type is selected.
+	$( "#dialog" ).dialog({
+        autoOpen: false,  
+        buttons: {
+            PER: function() {$(this).dialog("close");},
+            ORG:function() {$(this).dialog("close");},
+            PLACE:function() {$(this).dialog("close");},
+         }
+     });
+
+	
+	
 });
